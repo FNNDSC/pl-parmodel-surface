@@ -4,11 +4,11 @@ setup(
     name='parmodel-surface',
     version='1.0.0',
     description='Create surfaces from spherical functions',
-    author='FNNDSC',
+    author='Jennings Zhang',
     author_email='Jennings.Zhang@childrens.harvard.edu',
     url='https://github.com/FNNDSC/pl-parmodel-surface',
     py_modules=['parm'],
-    install_requires=['chris_plugin'],
+    install_requires=['chris_plugin', 'pybicpl'],
     license='MIT',
     entry_points={
         'console_scripts': [
