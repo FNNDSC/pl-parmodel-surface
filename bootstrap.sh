@@ -8,11 +8,11 @@
 # STEP 1. Change these values to your liking.
 
 PLUGIN_NAME="$(basename $(dirname $(realpath $0)))"  # name of current directory
-PLUGIN_TITLE='My ChRIS Plugin'
-SCRIPT_NAME='commandname'
-DESCRIPTION='A ChRIS plugin to do something awesome'
+PLUGIN_TITLE='Parametric Surface Functions'
+SCRIPT_NAME='parm'
+DESCRIPTION='Create surfaces from spherical functions'
 ORGANIZATION='FNNDSC'
-EMAIL='dev@babyMRI.org'
+EMAIL='Jennings.Zhang@childrens.harvard.edu'
 
 # Enables automatic testing, building, and release.
 # You are advised to review the file .github/workflows/ci.yml
@@ -21,7 +21,7 @@ ENABLE_CI=yes
 
 # STEP 2. Uncomment the line below.
 
-#READY=yes
+READY=yes
 
 # STEP 3. Run: ./bootstrap.sh
 
