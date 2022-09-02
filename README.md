@@ -18,9 +18,6 @@ mathematical curves can be determined theoretically.
 Resulting meshes have perfect vertex-to-vertex correspondence
 and are perfectly smooth (so long as the given function is differentiable).
 
-These objects can be manipulated with `param2xfm` or
-converted to MINC volumes with `surface_mask2`.
-
 ## Installation
 
 `pl-parmodel-surface` is a _[ChRIS](https://chrisproject.org/) plugin_, meaning it can
@@ -52,6 +49,8 @@ The object can be created like this:
 
 ```shell
 apptainer exec docker://fnndsc/pl-parmodel-surface:latest parm  \
-    --equation '20+5*sin(6*theta)*sin(phi)' \
+    --equation '20+5*sin(10*theta)*sin(phi)' \
     incoming/ outgoing/
 ```
+
+`pl-parmodel-surface` will also run `surface_mask2` to produce a volume mask for the surface.

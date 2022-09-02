@@ -3,14 +3,14 @@
 Uses physics (ISO) convention for spherical coordinates
 https://en.wikipedia.org/wiki/Spherical_coordinate_system#/media/File:3D_Spherical_2.svg
 """
-
-
+import os
 from math import sin, cos, acos, atan2
 import sys
 from pathlib import Path
 from argparse import ArgumentParser, Namespace, ArgumentDefaultsHelpFormatter
 from importlib.metadata import Distribution
-from typing import Callable
+from typing import Callable, Iterator
+import subprocess as sp
 
 import numpy as np
 import numpy.typing as npt
@@ -29,12 +29,18 @@ DISPLAY_TITLE = r"""
 |_|                          |_|    |___/
 """
 
+EXAMPLE_MASK = Path(os.environ['MNI_DATAPATH']) / 'N3/average_305_mask_1mm.mnc.gz'
+
 parser = ArgumentParser(description='Create surfaces from spherical functions',
                         formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument('-e', '--equation', required=True, type=str,
                     help='3D function in the form r(polar, azimuth)=?')
 parser.add_argument('-i', '--input', default='**/*.obj',
                     help='input files glob')
+parser.add_argument('--inflate_to_sphere_implicit', dest='inflate_to_sphere_implicit', type=str, required=False,
+                    help='Run inflate_to_sphere_implicit with these parameters on input files '
+                         'before projecting the function. Output files will be renamed with stem suffixes '
+                         '"_inflated", "_projected". Recommended value: 200,200')
 parser.add_argument('-V', '--version', action='version',
                     version=f'%(prog)s {__version__}')
 
@@ -48,9 +54,36 @@ parser.add_argument('-V', '--version', action='version',
 )
 def main(options: Namespace, inputdir: Path, outputdir: Path):
     print(DISPLAY_TITLE, file=sys.stderr)
+
+    like_mask = next(inputdir.glob('**/*.mnc'), None)
+    if like_mask is None:
+        like_mask = EXAMPLE_MASK
+    print(f'INFO: Will use {like_mask} as template for surface_mask2', file=sys.stderr)
+
     mapper = PathMapper.file_mapper(inputdir, outputdir, glob=options.input)
+    if options.inflate_to_sphere_implicit:
+        mapper = inflate_remap_inputs(mapper, options.inflate_to_sphere_implicit)
+
     for input_file, output_file in mapper:
         parm(options.equation, input_file, output_file)
+        surface_mask(like_mask, output_file, output_file.with_suffix('.mnc'))
+
+
+def inflate_remap_inputs(mapper: PathMapper, given_inflate_params: str) -> Iterator[tuple[Path, Path]]:
+    inflate_args = given_inflate_params.split(',')
+    for input_surface, output_path in mapper:
+        inflated_surface = output_path.with_stem(input_surface.stem + '_inflated')
+        projected_mesh = output_path.with_stem(input_surface.stem + '_projected')
+        inflate_to_sphere_implicit(input_surface, inflated_surface, inflate_args)
+        yield inflated_surface, projected_mesh
+
+
+def inflate_to_sphere_implicit(input_surface: Path, output_surface: Path, args: list[str]):
+    sp.run(('inflate_to_sphere_implicit', input_surface, output_surface, *args), check=True)
+
+
+def surface_mask(like_mask: Path, surface: Path, output_mask: Path):
+    sp.run(('surface_mask2', '-binary_mask', like_mask, surface, output_mask))
 
 
 def parm(equation: str, input_file: Path, output_file: Path):
